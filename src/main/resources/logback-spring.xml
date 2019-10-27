@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<contextName>ftgo-gateway</contextName>
+	<property name="log_dir" value="/log/ftgo" />
+	
+	<!-- <property name="log_file" value="user" /> -->
+	<!-- logback-spring.xml 可以直接读取配置文件的属性，此处的log_file适用于多环境，source是配置文件的key，不需要使用${} -->
+	<springProperty scope="context" name="log_file" source="eureka.instance.hostname"/>
+	<!-- 写出到console -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<!-- %d日期格式;%thread 线程名;%-5level 日志级别从左至右显示5个字符;%logger{36} 日志记录器的名称长度限制36字符;%msg 
+				日志内容;%n换行 -->
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+	<!-- 写出到file -->
+	<appender name="FILE_ALL"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log_dir}/${log_file}.log</file>
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>${log_dir}/${log_file}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!-- each file should be at most 100MB, keep 60 days worth of history, 
+				but at most 20GB -->
+			<maxFileSize>100MB</maxFileSize>
+			<maxHistory>60</maxHistory>
+			<totalSizeCap>20GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+	<!-- 写出到file,限定了目标级别error -->
+	<appender name="FILE_ERR"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log_dir}/${log_file}.err</file>
+		<rollingPolicy
+			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>${log_dir}/${log_file}-%d{yyyy-MM-dd}.%i.err</fileNamePattern>
+			<!-- each file should be at most 50MB, keep 60 days worth of history, 
+				but at most 20GB -->
+			<maxFileSize>50MB</maxFileSize>
+			<maxHistory>60</maxHistory>
+			<totalSizeCap>20GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>ERROR</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+	</appender>
+
+	<!-- 记录dao的sql,追加到root
+	<logger name="com.liqq.dao.mysql" level="DEBUG" /> -->
+	<!-- 记录security的调试信息,追加到root
+	<logger name="org.springframework.security" level="DEBUG" />
+ -->
+	<root level="INFO">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE_ALL" />
+		<appender-ref ref="FILE_ERR" />
+	</root>
+</configuration>
